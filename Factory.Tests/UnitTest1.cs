@@ -1,8 +1,6 @@
-﻿using System;
-using System.ComponentModel;
-using ExternalLibrary;
+﻿using ExternalLibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Oinant.Blog.Factory.ForTesting.WithFactory;
+using Oinant.Blog.Factory.ForTesting;
 
 namespace Factory.Tests
 {

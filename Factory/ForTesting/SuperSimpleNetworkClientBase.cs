@@ -1,60 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ExternalLibrary;
+﻿using ExternalLibrary;
 
 namespace Oinant.Blog.Factory.ForTesting
 {
-    public abstract class SuperSimpleNetworkClientBase
-    {
-        public abstract string SendRequest();
 
-        protected string ExtractSummaryFrom(NetworkMessage message)
+    public class NetworkClientWithoutMessageFactory
+    {
+        public string SendRequest()
         {
-            return message.IsSuccess().ToString() + " " + message.GetContentAs<string>();
+            var message = new NetworkService().SendMessage();
+            var networkMessage = new NetworkMessage((Status)message.Item1, message.Item2);
+
+            return networkMessage.IsSuccess().ToString() + " " + networkMessage.GetContentAs<string>();
         }
     }
 
-
-    namespace WithoutFactory
+    public class NetworkClientWithMessageFactory
     {
-        public class NetworkClientWithoutMessageFactory : SuperSimpleNetworkClientBase
-        {
-            public override string SendRequest()
-            {
-                var message = new NetworkService().SendMessage();
-                var networkMessage = new NetworkMessage((Status)message.Item1, message.Item2);
+        private readonly INetworkMessageFactory _networkMessageFactory;
 
-                return ExtractSummaryFrom(networkMessage);
-            }
+        public NetworkClientWithMessageFactory(INetworkMessageFactory networkMessageFactory)
+        {
+            _networkMessageFactory = networkMessageFactory;
         }
 
+        public string SendRequest()
+        {
+            var message = new NetworkService().SendMessage();
+            var networkMessage = _networkMessageFactory.Create((Status)message.Item1, message.Item2);
+
+            return networkMessage.IsSuccess().ToString() + " " + networkMessage.GetContentAs<string>();
+        }
     }
 
-
-    namespace WithFactory
+    public interface INetworkMessageFactory
     {
-
-        public class NetworkClientWithMessageFactory : SuperSimpleNetworkClientBase
-        {
-            public override string SendRequest()
-            {
-                var message = new NetworkService().SendMessage();
-                var networkMessage = new NetworkMessage((Status)message.Item1, message.Item2);
-
-                return ExtractSummaryFrom(networkMessage);
-            }
-        }
-
-        public interface INetworkMessageFactory
-        {
-            NetworkMessage Create(Status status, object content);
-        }
-
-
-        
+        NetworkMessage Create(Status status, object content);
     }
 
+    public class ConcreteNetworkMessageFactory : INetworkMessageFactory
+    {
+        public NetworkMessage Create(Status status, object content)
+        {
+            return new NetworkMessage(status, content);
+        }
+    }
 }
